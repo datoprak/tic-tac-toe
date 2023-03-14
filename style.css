@@ -1,3 +1,33 @@
-.dummy {
-  color: steelblue;
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+.header {
+  padding: 32px;
+  font-size: 3rem;
+  font-weight: 700;
+}
+
+.gameboard {
+  display: grid;
+  grid-template-columns: repeat(3, 128px);
+  grid-template-rows: repeat(3, 128px);
+  gap: 8px;
+  background-color: steelblue;
+  width: 416px;
+  padding: 8px;
+}
+
+.square {
+  background-color: aliceblue;
 }
