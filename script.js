@@ -56,59 +56,49 @@ const Controller = (() => {
     Gameboard.getBoard();
   };
 
-  const checkWin = () => {
-    const gameboardArray = Gameboard.gameboardOneDimArray;
-    const currentPlayer = getPlayerMark();
-    if (gameboardArray[0] === currentPlayer) {
-      if (
-        gameboardArray[1] === currentPlayer &&
-        gameboardArray[2] === currentPlayer
+  const checkWin = (gameboard, currentPlayer) => {
+    if (gameboard[0] === currentPlayer) {
+      if (gameboard[1] === currentPlayer && gameboard[2] === currentPlayer) {
+        return true;
+      } else if (
+        gameboard[3] === currentPlayer &&
+        gameboard[6] === currentPlayer
       ) {
         return true;
       } else if (
-        gameboardArray[3] === currentPlayer &&
-        gameboardArray[6] === currentPlayer
-      ) {
-        return true;
-      } else if (
-        gameboardArray[4] === currentPlayer &&
-        gameboardArray[8] === currentPlayer
+        gameboard[4] === currentPlayer &&
+        gameboard[8] === currentPlayer
       ) {
         return true;
       }
     }
-    if (gameboardArray[8] === currentPlayer) {
-      if (
-        gameboardArray[2] === currentPlayer &&
-        gameboardArray[5] === currentPlayer
-      ) {
+    if (gameboard[8] === currentPlayer) {
+      if (gameboard[2] === currentPlayer && gameboard[5] === currentPlayer) {
         return true;
       } else if (
-        gameboardArray[6] === currentPlayer &&
-        gameboardArray[7] === currentPlayer
+        gameboard[6] === currentPlayer &&
+        gameboard[7] === currentPlayer
       ) {
         return true;
       }
     }
-    if (gameboardArray[4] === currentPlayer) {
-      if (
-        gameboardArray[1] === currentPlayer &&
-        gameboardArray[7] === currentPlayer
+    if (gameboard[4] === currentPlayer) {
+      if (gameboard[1] === currentPlayer && gameboard[7] === currentPlayer) {
+        return true;
+      } else if (
+        gameboard[3] === currentPlayer &&
+        gameboard[5] === currentPlayer
       ) {
         return true;
       } else if (
-        gameboardArray[3] === currentPlayer &&
-        gameboardArray[5] === currentPlayer
-      ) {
-        return true;
-      } else if (
-        gameboardArray[2] === currentPlayer &&
-        gameboardArray[6] === currentPlayer
+        gameboard[2] === currentPlayer &&
+        gameboard[6] === currentPlayer
       ) {
         return true;
       }
     }
-    if (gameboardArray.every(el => el === "X" || el === "O")) {
+    // gameboardArray.every(el => el === "X" || el === "O")
+    if (emptySquares().length === 0) {
       return "draw";
     }
   };
@@ -118,7 +108,7 @@ const Controller = (() => {
     const closeButton = document.querySelector(".close");
     const message = document.querySelector(".message");
     const currentPlayer = getPlayerMark();
-    if (checkWin() === "draw") {
+    if (checkWin(Gameboard.gameboard, currentPlayer) === "draw") {
       message.textContent = "DRAW!";
     } else {
       message.textContent = `${currentPlayer} WON!`;
@@ -141,8 +131,8 @@ const Controller = (() => {
     Game.startGame();
   };
 
-  const playRound = () => {
-    if (checkWin()) {
+  const playRound = gameboard => {
+    if (checkWin(gameboard, getPlayerMark())) {
       handleModal();
       restartGame();
       return;
@@ -169,7 +159,12 @@ const Controller = (() => {
     });
 
     gameboard[row][column] = getPlayerMark();
-    playRound();
+    playRound(gameboardArray);
+  };
+
+  const emptySquares = () => {
+    const gameboardArray = Gameboard.gameboardOneDimArray;
+    return gameboardArray.filter(el => el !== "X" && el !== "O");
   };
 
   return { addMark };

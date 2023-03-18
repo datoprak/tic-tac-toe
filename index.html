@@ -12,6 +12,36 @@
     <div class="container">
       <div class="header">Tic Tac Toe</div>
       <div class="gameboard"></div>
+      <div class="vs-modal">
+        <div class="vs-modal-content">
+          <button class="pvp-button">Player vs. Player</button>
+          <button class="pve-button">Player vs. AI</button>
+        </div>
+      </div>
+      <div class="pvp-modal">
+        <div class="pvp-modal-content">
+          <form action="post">
+            <label for="x-player">X-Player Name:</label>
+            <input type="text" id="x-player" required />
+            <label for="o-player">O-Player Name:</label>
+            <input type="text" id="o-player" required />
+            <button type="submit" class="pvp-start-button">START</button>
+          </form>
+        </div>
+      </div>
+      <div class="pve-modal">
+        <div class="pve-modal-content">
+          <label for="player">Player Name:</label>
+          <input type="text" id="player" required />
+          <p>Choose your token</p>
+          <div class="switch-container">
+            <p>X</p>
+            <input id="switch" type="checkbox" />
+            <label for="switch" class="switch-label">Switch</label>
+            <p>O</p>
+          </div>
+        </div>
+      </div>
       <div class="modal">
         <div class="modal-content">
           <span class="close">&times;</span>

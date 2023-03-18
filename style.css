@@ -32,7 +32,10 @@
   background-color: aliceblue;
 }
 
-.modal {
+.modal,
+.vs-modal,
+.pvp-modal,
+.pve-modal {
   display: none;
   position: fixed;
   z-index: 1;
@@ -45,7 +48,14 @@
   opacity: 0.4;
 }
 
-.modal-content {
+.vs-modal {
+  display: block;
+}
+
+.modal-content,
+.vs-modal-content,
+.pvp-modal-content,
+.pve-modal-content {
   background-color: #fefefe;
   margin: 15% auto;
   padding: 20px;
