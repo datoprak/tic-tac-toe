@@ -17,13 +17,19 @@ const Gameboard = (() => {
       }
     }
 
+    const buttons = document.querySelectorAll(".square");
+    buttons.forEach((btn, index) => {
+      btn.dataset.index = index;
+    });
+
     return { gameboard, gameboardOneDimArray };
   })();
 
   const getBoard = () => {
     const buttons = document.querySelectorAll(".square");
-    buttons.forEach(button => {
+    buttons.forEach((button, index) => {
       button.textContent = gameboard[button.dataset.row][button.dataset.column];
+      button.textContent = gameboardOneDimArray[index];
     });
     return { buttons };
   };
@@ -47,6 +53,8 @@ const Controller = (() => {
   let xPlayerName;
   let oPlayerName;
   let activePlayer;
+  let aiPlayerMark;
+  const aiPlayer = "__ai";
 
   const handlePvp = e => {
     e.preventDefault();
@@ -66,7 +74,32 @@ const Controller = (() => {
     }
     pvpModal.style.display = "none";
     activePlayer = xPlayerName;
+    playRound();
     return { xPlayerName, oPlayerName, activePlayer };
+  };
+
+  const handlePve = e => {
+    e.preventDefault();
+    const playerNameInput = document.querySelector("#player");
+    const playerMarkInput = document.querySelector(
+      "input[name='mark']:checked"
+    );
+    const pveModal = document.querySelector(".pve-modal");
+    const errorMessage = document.querySelector(".pve-error");
+    const playerName = playerNameInput.value;
+    const playerMark = playerMarkInput.value;
+    if (!playerName) {
+      errorMessage.style.display = "block";
+      return;
+    }
+    xPlayerName = playerMark === "X" ? playerName : aiPlayer;
+    oPlayerName = playerMark === "O" ? playerName : aiPlayer;
+    aiPlayerMark = playerMark === "X" ? "O" : "X";
+    pveModal.style.display = "none";
+    activePlayer = xPlayerName;
+    console.log({ xPlayerName, oPlayerName, activePlayer });
+    playRound();
+    return { xPlayerName, oPlayerName, activePlayer, aiPlayerMark };
   };
 
   const getPlayerMark = () => (activePlayer === xPlayerName ? "X" : "O");
@@ -79,6 +112,7 @@ const Controller = (() => {
   };
 
   const checkWin = (gameboard, currentPlayerMark) => {
+    currentPlayerMark = currentPlayerMark === "X" ? "O" : "X";
     if (gameboard[0] === currentPlayerMark) {
       if (
         gameboard[1] === currentPlayerMark &&
@@ -97,6 +131,7 @@ const Controller = (() => {
         return true;
       }
     }
+
     if (gameboard[8] === currentPlayerMark) {
       if (
         gameboard[2] === currentPlayerMark &&
@@ -110,6 +145,7 @@ const Controller = (() => {
         return true;
       }
     }
+
     if (gameboard[4] === currentPlayerMark) {
       if (
         gameboard[1] === currentPlayerMark &&
@@ -128,19 +164,19 @@ const Controller = (() => {
         return true;
       }
     }
-    if (emptySquares().length === 0) {
-      return "draw";
-    }
   };
 
-  const handleModal = () => {
+  const checkDraw = gameboard => {
+    return gameboard.every(el => el === "X" || el === "O");
+  };
+
+  const handleModal = result => {
     const modal = document.querySelector(".modal");
     const message = document.querySelector(".message");
     const newGameButton = document.querySelector(".new-game");
     const restartButton = document.querySelector(".restart");
     const vsModal = document.querySelector(".vs-modal");
-    const currentPlayerMark = getPlayerMark();
-    if (checkWin(Gameboard.gameboard, currentPlayerMark) === "draw") {
+    if (result === "draw") {
       message.textContent = "DRAW!";
     } else {
       message.textContent = `${activePlayer} WON!`;
@@ -167,46 +203,67 @@ const Controller = (() => {
     errorMessage.style.display = "none";
     xPlayerInput.value = "";
     oPlayerInput.value = "";
-    Game.startGame();
   };
 
-  const playRound = gameboard => {
-    if (checkWin(gameboard, getPlayerMark())) {
-      handleModal();
+  const makeAimove = () => {
+    const emptySquare = Gameboard.gameboardOneDimArray.find(
+      el => el !== "X" && el !== "O"
+    );
+    const index = Gameboard.gameboardOneDimArray.indexOf(emptySquare);
+    Gameboard.gameboardOneDimArray[index] = getPlayerMark();
+    switchPlayer();
+    playRound();
+  };
+
+  const playRound = () => {
+    const gameboardDiv = document.querySelector(".gameboard");
+    let result;
+    if (checkWin(Gameboard.gameboardOneDimArray, getPlayerMark())) {
+      result = "win";
+      switchPlayer();
+      handleModal(result);
       restartGame();
       return;
     }
-
-    startNewRound();
-
-    switchPlayer();
+    if (checkDraw(Gameboard.gameboardOneDimArray)) {
+      result = "draw";
+      handleModal(result);
+      restartGame();
+      return;
+    }
+    if (isAiTurn()) {
+      makeAimove();
+      startNewRound();
+    } else {
+      gameboardDiv.addEventListener("click", addMark);
+      startNewRound();
+    }
   };
+
+  const isAiTurn = () => (activePlayer === "__ai" ? true : false);
 
   const addMark = e => {
     const row = e.target.dataset.row;
     const column = e.target.dataset.column;
+    const index = e.target.dataset.index;
     const gameboard = Gameboard.gameboard;
     const gameboardArray = Gameboard.gameboardOneDimArray;
-    const buttons = document.querySelectorAll(".square");
 
-    if (e.target.value === undefined || gameboard[row][column] !== "") return;
+    if (
+      e.target.value === undefined ||
+      gameboard[row][column] !== "" ||
+      gameboardArray[index] !== ""
+    )
+      return;
 
-    buttons.forEach((button, index) => {
-      if (e.target === button) {
-        gameboardArray[index] = getPlayerMark();
-      }
-    });
+    gameboardArray[index] = getPlayerMark();
 
     gameboard[row][column] = getPlayerMark();
-    playRound(gameboardArray);
+    switchPlayer();
+    playRound();
   };
 
-  const emptySquares = () => {
-    const gameboardArray = Gameboard.gameboardOneDimArray;
-    return gameboardArray.filter(el => el !== "X" && el !== "O");
-  };
-
-  return { addMark, handlePvp };
+  return { addMark, handlePvp, handlePve, playRound };
 })();
 
 const Game = (() => {
@@ -215,18 +272,27 @@ const Game = (() => {
   const pveButton = document.querySelector(".pve-button");
   const pvpModal = document.querySelector(".pvp-modal");
   const pvpStartButton = document.querySelector(".pvp-start-button");
+  const pveStartButton = document.querySelector(".pve-start-button");
+  const pveModal = document.querySelector(".pve-modal");
   const gameboardDiv = document.querySelector(".gameboard");
 
   const startGame = () => {
-    pvpButton.addEventListener("click", handleVsModal);
+    pvpButton.addEventListener("click", handlePvpModal);
+
+    pveButton.addEventListener("click", handlePveModal);
 
     pvpStartButton.addEventListener("click", Controller.handlePvp);
 
-    gameboardDiv.addEventListener("click", Controller.addMark);
+    pveStartButton.addEventListener("click", Controller.handlePve);
   };
 
-  const handleVsModal = () => {
+  const handlePvpModal = () => {
     pvpModal.style.display = "block";
+    vsModal.style.display = "none";
+  };
+
+  const handlePveModal = () => {
+    pveModal.style.display = "block";
     vsModal.style.display = "none";
   };
 

@@ -63,6 +63,7 @@
   width: 80%;
 }
 
-.pvp-error {
+.pvp-error,
+.pve-error {
   display: none;
 }
