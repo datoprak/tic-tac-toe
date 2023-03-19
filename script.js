@@ -44,60 +44,90 @@ const Gameboard = (() => {
 })();
 
 const Controller = (() => {
-  let activePlayer = "playerOne";
+  let xPlayerName;
+  let oPlayerName;
+  let activePlayer;
 
-  const getPlayerMark = () => (activePlayer === "playerOne" ? "X" : "O");
-
-  const switchPlayer = () => {
-    activePlayer = activePlayer === "playerOne" ? "playerTwo" : "playerOne";
+  const handlePvp = e => {
+    e.preventDefault();
+    const xPlayerInput = document.querySelector("#x-player");
+    const oPlayerInput = document.querySelector("#o-player");
+    const pvpModal = document.querySelector(".pvp-modal");
+    const errorMessage = document.querySelector(".pvp-error");
+    xPlayerName = xPlayerInput.value;
+    oPlayerName = oPlayerInput.value;
+    if (
+      xPlayerName === oPlayerName ||
+      xPlayerName === "" ||
+      oPlayerName === ""
+    ) {
+      errorMessage.style.display = "block";
+      return;
+    }
+    pvpModal.style.display = "none";
+    activePlayer = xPlayerName;
+    return { xPlayerName, oPlayerName, activePlayer };
   };
+
+  const getPlayerMark = () => (activePlayer === xPlayerName ? "X" : "O");
+
+  const switchPlayer = () =>
+    (activePlayer = activePlayer === xPlayerName ? oPlayerName : xPlayerName);
 
   const startNewRound = () => {
     Gameboard.getBoard();
   };
 
-  const checkWin = (gameboard, currentPlayer) => {
-    if (gameboard[0] === currentPlayer) {
-      if (gameboard[1] === currentPlayer && gameboard[2] === currentPlayer) {
-        return true;
-      } else if (
-        gameboard[3] === currentPlayer &&
-        gameboard[6] === currentPlayer
+  const checkWin = (gameboard, currentPlayerMark) => {
+    if (gameboard[0] === currentPlayerMark) {
+      if (
+        gameboard[1] === currentPlayerMark &&
+        gameboard[2] === currentPlayerMark
       ) {
         return true;
       } else if (
-        gameboard[4] === currentPlayer &&
-        gameboard[8] === currentPlayer
+        gameboard[3] === currentPlayerMark &&
+        gameboard[6] === currentPlayerMark
       ) {
         return true;
-      }
-    }
-    if (gameboard[8] === currentPlayer) {
-      if (gameboard[2] === currentPlayer && gameboard[5] === currentPlayer) {
-        return true;
       } else if (
-        gameboard[6] === currentPlayer &&
-        gameboard[7] === currentPlayer
+        gameboard[4] === currentPlayerMark &&
+        gameboard[8] === currentPlayerMark
       ) {
         return true;
       }
     }
-    if (gameboard[4] === currentPlayer) {
-      if (gameboard[1] === currentPlayer && gameboard[7] === currentPlayer) {
-        return true;
-      } else if (
-        gameboard[3] === currentPlayer &&
-        gameboard[5] === currentPlayer
+    if (gameboard[8] === currentPlayerMark) {
+      if (
+        gameboard[2] === currentPlayerMark &&
+        gameboard[5] === currentPlayerMark
       ) {
         return true;
       } else if (
-        gameboard[2] === currentPlayer &&
-        gameboard[6] === currentPlayer
+        gameboard[6] === currentPlayerMark &&
+        gameboard[7] === currentPlayerMark
       ) {
         return true;
       }
     }
-    // gameboardArray.every(el => el === "X" || el === "O")
+    if (gameboard[4] === currentPlayerMark) {
+      if (
+        gameboard[1] === currentPlayerMark &&
+        gameboard[7] === currentPlayerMark
+      ) {
+        return true;
+      } else if (
+        gameboard[3] === currentPlayerMark &&
+        gameboard[5] === currentPlayerMark
+      ) {
+        return true;
+      } else if (
+        gameboard[2] === currentPlayerMark &&
+        gameboard[6] === currentPlayerMark
+      ) {
+        return true;
+      }
+    }
     if (emptySquares().length === 0) {
       return "draw";
     }
@@ -105,29 +135,38 @@ const Controller = (() => {
 
   const handleModal = () => {
     const modal = document.querySelector(".modal");
-    const closeButton = document.querySelector(".close");
     const message = document.querySelector(".message");
-    const currentPlayer = getPlayerMark();
-    if (checkWin(Gameboard.gameboard, currentPlayer) === "draw") {
+    const newGameButton = document.querySelector(".new-game");
+    const restartButton = document.querySelector(".restart");
+    const vsModal = document.querySelector(".vs-modal");
+    const currentPlayerMark = getPlayerMark();
+    if (checkWin(Gameboard.gameboard, currentPlayerMark) === "draw") {
       message.textContent = "DRAW!";
     } else {
-      message.textContent = `${currentPlayer} WON!`;
+      message.textContent = `${activePlayer} WON!`;
     }
     modal.style.display = "block";
-    closeButton.onclick = () => (modal.style.display = "none");
-    window.onclick = e => {
-      if (e.target === modal) {
-        modal.style.display = "none";
-      }
+    newGameButton.onclick = () => {
+      modal.style.display = "none";
+      vsModal.style.display = "block";
+    };
+    restartButton.onclick = () => {
+      modal.style.display = "none";
     };
   };
 
   const restartGame = () => {
+    const errorMessage = document.querySelector(".pvp-error");
+    const xPlayerInput = document.querySelector("#x-player");
+    const oPlayerInput = document.querySelector("#o-player");
     Gameboard.getBoard().buttons.forEach(button => {
       button.textContent = "";
     });
     Gameboard.remakeArrays();
-    activePlayer = "playerOne";
+    activePlayer = xPlayerName;
+    errorMessage.style.display = "none";
+    xPlayerInput.value = "";
+    oPlayerInput.value = "";
     Game.startGame();
   };
 
@@ -167,13 +206,28 @@ const Controller = (() => {
     return gameboardArray.filter(el => el !== "X" && el !== "O");
   };
 
-  return { addMark };
+  return { addMark, handlePvp };
 })();
 
 const Game = (() => {
+  const vsModal = document.querySelector(".vs-modal");
+  const pvpButton = document.querySelector(".pvp-button");
+  const pveButton = document.querySelector(".pve-button");
+  const pvpModal = document.querySelector(".pvp-modal");
+  const pvpStartButton = document.querySelector(".pvp-start-button");
+  const gameboardDiv = document.querySelector(".gameboard");
+
   const startGame = () => {
-    const gameboardDiv = document.querySelector(".gameboard");
+    pvpButton.addEventListener("click", handleVsModal);
+
+    pvpStartButton.addEventListener("click", Controller.handlePvp);
+
     gameboardDiv.addEventListener("click", Controller.addMark);
+  };
+
+  const handleVsModal = () => {
+    pvpModal.style.display = "block";
+    vsModal.style.display = "none";
   };
 
   startGame();

@@ -20,12 +20,13 @@
       </div>
       <div class="pvp-modal">
         <div class="pvp-modal-content">
-          <form action="post">
+          <form method="post">
             <label for="x-player">X-Player Name:</label>
             <input type="text" id="x-player" required />
             <label for="o-player">O-Player Name:</label>
             <input type="text" id="o-player" required />
             <button type="submit" class="pvp-start-button">START</button>
+            <div class="pvp-error">Player names can't be same or empty.</div>
           </form>
         </div>
       </div>
@@ -44,8 +45,9 @@
       </div>
       <div class="modal">
         <div class="modal-content">
-          <span class="close">&times;</span>
           <p class="message"></p>
+          <button class="new-game">New Game</button>
+          <button class="restart">Restart</button>
         </div>
       </div>
     </div>

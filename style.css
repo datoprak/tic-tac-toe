@@ -63,16 +63,6 @@
   width: 80%;
 }
 
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.close:hover,
-.close:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
+.pvp-error {
+  display: none;
 }
