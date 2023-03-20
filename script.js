@@ -54,7 +54,9 @@ const Controller = (() => {
   let oPlayerName;
   let activePlayer;
   let aiPlayerMark;
+  let humanPlayerMark;
   const aiPlayer = "__ai";
+  let humanPlayer;
 
   const handlePvp = e => {
     e.preventDefault();
@@ -95,21 +97,25 @@ const Controller = (() => {
     xPlayerName = playerMark === "X" ? playerName : aiPlayer;
     oPlayerName = playerMark === "O" ? playerName : aiPlayer;
     aiPlayerMark = playerMark === "X" ? "O" : "X";
+    humanPlayer = playerName;
+    humanPlayerMark = playerMark;
     pveModal.style.display = "none";
     activePlayer = xPlayerName;
-    console.log({ xPlayerName, oPlayerName, activePlayer });
     playRound();
-    return { xPlayerName, oPlayerName, activePlayer, aiPlayerMark };
+    return {
+      xPlayerName,
+      oPlayerName,
+      activePlayer,
+      aiPlayerMark,
+      humanPlayer,
+      humanPlayerMark,
+    };
   };
 
   const getPlayerMark = () => (activePlayer === xPlayerName ? "X" : "O");
 
   const switchPlayer = () =>
     (activePlayer = activePlayer === xPlayerName ? oPlayerName : xPlayerName);
-
-  const startNewRound = () => {
-    Gameboard.getBoard();
-  };
 
   const checkWin = (gameboard, currentPlayerMark) => {
     currentPlayerMark = currentPlayerMark === "X" ? "O" : "X";
@@ -164,6 +170,8 @@ const Controller = (() => {
         return true;
       }
     }
+
+    return false;
   };
 
   const checkDraw = gameboard => {
@@ -179,15 +187,20 @@ const Controller = (() => {
     if (result === "draw") {
       message.textContent = "DRAW!";
     } else {
-      message.textContent = `${activePlayer} WON!`;
+      message.textContent = `${
+        activePlayer === "__ai" ? "AI" : activePlayer
+      } WIN!`;
     }
     modal.style.display = "block";
     newGameButton.onclick = () => {
       modal.style.display = "none";
       vsModal.style.display = "block";
+      restartGame();
     };
     restartButton.onclick = () => {
       modal.style.display = "none";
+      restartGame();
+      playRound();
     };
   };
 
@@ -195,6 +208,7 @@ const Controller = (() => {
     const errorMessage = document.querySelector(".pvp-error");
     const xPlayerInput = document.querySelector("#x-player");
     const oPlayerInput = document.querySelector("#o-player");
+    const playerInput = document.querySelector("#player");
     Gameboard.getBoard().buttons.forEach(button => {
       button.textContent = "";
     });
@@ -203,14 +217,77 @@ const Controller = (() => {
     errorMessage.style.display = "none";
     xPlayerInput.value = "";
     oPlayerInput.value = "";
+    playerInput.value = "";
+  };
+
+  const emptySquares = () => {
+    let emptySquaresIndex = [];
+    Gameboard.gameboardOneDimArray.filter((el, index) => {
+      if (el !== "X" && el !== "O") {
+        emptySquaresIndex.push(index);
+      }
+    });
+    return emptySquaresIndex;
+  };
+
+  const minimax = (gameboard, player) => {
+    const emptySquaresArray = emptySquares();
+
+    if (checkWin(gameboard, aiPlayerMark)) {
+      return { score: -10 };
+    } else if (checkWin(gameboard, humanPlayerMark)) {
+      return { score: 10 };
+    } else if (emptySquaresArray.length === 0) {
+      return { score: 0 };
+    }
+
+    const moves = [];
+    for (let i = 0; i < emptySquaresArray.length; i++) {
+      const move = {};
+      move.index = emptySquaresArray[i];
+      gameboard[emptySquaresArray[i]] = player;
+
+      if (player === aiPlayerMark) {
+        const result = minimax(gameboard, humanPlayerMark);
+        move.score = result.score;
+      } else {
+        const result = minimax(gameboard, aiPlayerMark);
+        move.score = result.score;
+      }
+
+      gameboard[emptySquaresArray[i]] = "";
+      moves.push(move);
+    }
+
+    let bestMove;
+    if (player === aiPlayerMark) {
+      let bestScore = -1000;
+      for (let i = 0; i < moves.length; i++) {
+        if (moves[i].score > bestScore) {
+          bestScore = moves[i].score;
+          bestMove = i;
+        }
+      }
+    } else {
+      let bestScore = 1000;
+      for (let i = 0; i < moves.length; i++) {
+        if (moves[i].score < bestScore) {
+          bestScore = moves[i].score;
+          bestMove = i;
+        }
+      }
+    }
+
+    return moves[bestMove];
   };
 
   const makeAimove = () => {
-    const emptySquare = Gameboard.gameboardOneDimArray.find(
-      el => el !== "X" && el !== "O"
-    );
-    const index = Gameboard.gameboardOneDimArray.indexOf(emptySquare);
-    Gameboard.gameboardOneDimArray[index] = getPlayerMark();
+    const bestMove = minimax(
+      Gameboard.gameboardOneDimArray,
+      aiPlayerMark
+    ).index;
+
+    Gameboard.gameboardOneDimArray[bestMove] = aiPlayerMark;
     switchPlayer();
     playRound();
   };
@@ -218,25 +295,24 @@ const Controller = (() => {
   const playRound = () => {
     const gameboardDiv = document.querySelector(".gameboard");
     let result;
+    Gameboard.getBoard();
     if (checkWin(Gameboard.gameboardOneDimArray, getPlayerMark())) {
       result = "win";
       switchPlayer();
       handleModal(result);
-      restartGame();
       return;
     }
     if (checkDraw(Gameboard.gameboardOneDimArray)) {
       result = "draw";
       handleModal(result);
-      restartGame();
       return;
     }
     if (isAiTurn()) {
       makeAimove();
-      startNewRound();
+      Gameboard.getBoard();
     } else {
       gameboardDiv.addEventListener("click", addMark);
-      startNewRound();
+      Gameboard.getBoard();
     }
   };
 
@@ -274,7 +350,6 @@ const Game = (() => {
   const pvpStartButton = document.querySelector(".pvp-start-button");
   const pveStartButton = document.querySelector(".pve-start-button");
   const pveModal = document.querySelector(".pve-modal");
-  const gameboardDiv = document.querySelector(".gameboard");
 
   const startGame = () => {
     pvpButton.addEventListener("click", handlePvpModal);
