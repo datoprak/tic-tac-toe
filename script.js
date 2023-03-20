@@ -188,7 +188,7 @@ const Controller = (() => {
       message.textContent = "DRAW!";
     } else {
       message.textContent = `${
-        activePlayer === "__ai" ? "AI" : activePlayer
+        activePlayer === "__ai" ? "AI" : activePlayer.toUpperCase()
       } WIN!`;
     }
     modal.style.display = "block";

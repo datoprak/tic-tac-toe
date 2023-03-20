@@ -21,10 +21,14 @@
       <div class="pvp-modal">
         <div class="pvp-modal-content">
           <form method="post">
-            <label for="x-player">X-Player Name:</label>
-            <input type="text" id="x-player" required />
-            <label for="o-player">O-Player Name:</label>
-            <input type="text" id="o-player" required />
+            <div class="x-player-container">
+              <label for="x-player">X-Player Name:</label>
+              <input type="text" id="x-player" required />
+            </div>
+            <div class="o-player-container">
+              <label for="o-player">O-Player Name:</label>
+              <input type="text" id="o-player" required />
+            </div>
             <button type="submit" class="pvp-start-button">START</button>
             <div class="pvp-error">Player names can't be same or empty.</div>
           </form>
@@ -35,11 +39,13 @@
           <form method="post">
             <label for="player">Player Name:</label>
             <input type="text" id="player" required />
-            <legend>Select your mark</legend>
-            <input type="radio" name="mark" id="x" value="X" checked />
-            <label for="x">X</label>
-            <input type="radio" name="mark" id="o" value="O" />
-            <label for="o">O</label>
+            <legend>Select your mark:</legend>
+            <div class="radio-container">
+              <input type="radio" name="mark" id="x" value="X" checked />
+              <label for="x">X</label>
+              <input type="radio" name="mark" id="o" value="O" />
+              <label for="o">O</label>
+            </div>
             <button type="submit" class="pve-start-button">START</button>
             <div class="pve-error">Player name can't be empty.</div>
           </form>
